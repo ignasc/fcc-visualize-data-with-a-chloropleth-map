@@ -1,8 +1,13 @@
 /*Load dataset from*/
 /*https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/global-temperature.json*/
 
+/*
 const USEducationData = "https://cdn.freecodecamp.org/testable-projects-fcc/data/choropleth_map/for_user_education.json";
 const USCountyData = "https://cdn.freecodecamp.org/testable-projects-fcc/data/choropleth_map/counties.json";
+*/
+/*LOCAL DATA FOR DEVELOPMENT*/
+const USEducationData = "./data/for_user_education.json";
+const USCountyData = "./data/counties.json";
 
 document.addEventListener("DOMContentLoaded", function(){
 
@@ -17,23 +22,7 @@ document.addEventListener("DOMContentLoaded", function(){
               req.onload = function(){
                      const jsonCounty = JSON.parse(req.responseText);
 
-                     /*reduced size arrays (temporary)*/
-                     let counter = 100;
-                     let tempJsonEducation = [];
-                     let tempJsonCounty = {arcs: []};
-
-                     for(let i = 0; i<counter; i++){
-                            tempJsonEducation.push(jsonEducation[i]);
-
-                            tempJsonCounty.arcs.push(jsonCounty.arcs[i]);
-                     };
-                     
-                     console.log("tempJsonEducation");
-                     console.log(tempJsonEducation);
-                     console.log("tempJsonCountry");
-                     console.log(tempJsonCounty);
-
-                     main(tempJsonEducation, tempJsonCounty);
+                     main(jsonEducation, jsonCounty);
 
               };
        };
@@ -63,82 +52,22 @@ function main(jsonEducation, jsonCounty){
               })
               .style("margin-top", "20px");
 
+       /*Create projection - to project latitude and longitude coordinates on flat surface (monitor). Using standard d3 tool Mercator*/
+       var projekctija = d3.geoMercator()
+              /*center it*/
+              .translate([chartWidth/2,chartHeight/2]);
+       /*
+         create a path (geoPath) using projection
+       */
+      var path = d3.geoPath()
+              .projection(projekctija);
+
+              /*https://github.com/topojson/topojson-client/blob/master/README.md#feature*/
+              console.log(topojson.feature(jsonCounty,jsonCounty.objects.counties).features);
+       
        
 
        /*debug section*/
-
-       const tempTestScaleX = d3.scaleLinear()
-              .domain([
-                     d3.min(jsonCounty.arcs, (d)=>{
-                            return d[0][0];
-                     }),
-                     d3.max(jsonCounty.arcs, (d)=>{
-                            return d[0][0];
-                     })
-              ])
-              .range([
-                     padding,chartWidth - padding
-              ]);
-
-       const tempTestScaleY = d3.scaleLinear()
-              .domain([
-                     d3.max(jsonCounty.arcs, (d)=>{
-                            return d[0][1];
-                     }),
-                     d3.min(jsonCounty.arcs, (d)=>{
-                            return d[0][1];
-                     })
-              ])
-              .range([
-                     chartHeight - padding, padding
-              ]);
-
-       svg.selectAll("circle")
-              .data(jsonCounty.arcs)
-              .enter()
-              .append("circle")
-              .attr("id","country-circle")
-              .attr("r", 1)
-              .attr("cx",
-                     (d)=>tempTestScaleX(d[0][0])
-              )
-              .attr("cy",
-                     (d)=>tempTestScaleY(d[0][1])
-              );
-
-       svg.selectAll("path")
-              .data(jsonCounty.arcs)
-              .enter()
-              .append("path")
-              .style("stroke", "red")
-              .style("fill", "none")
-              .attr("d", (d)=>{
-                     let startCoordinate = tempTestScaleX(d[0][0]) + " " + tempTestScaleY(d[0][1]);
-
-                     let testArrayLOL = [];
-                     let relativePoints = "";
-
-                     d.forEach((item, index)=>{
-                            if(index==0){return};
-                            /*
-                            patikrinti, ar skaicius neigiamas
-                            jei neigiamas, nuimti minuso zenkla
-                            scale the number to proper size
-                            prideti minuso zenkla, jei buvo jis nuimtas
-                            prideti koordinate
-                            */
-
-                            testArrayLOL.push(scaleTheCoordinates(item, tempTestScaleX, tempTestScaleY));
-                     })
-
-                     testArrayLOL.forEach((d)=>{
-                            relativePoints = relativePoints + "l" + d[0] + " " + d[1] + " ";
-                     })
-
-                     /*return "M " + startCoordinate + relativePoints + "z"; */
-                     return "M " + startCoordinate + "l20 0 l 0 -20" + "z";
-              });
-
        console.log("jsonEducation");
        console.log(jsonEducation);
        console.log("jsonCountry");
