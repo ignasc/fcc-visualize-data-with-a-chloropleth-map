@@ -62,11 +62,19 @@ function main(jsonEducation, jsonCounty){
       var path = d3.geoPath()
               .projection(projekctija);
 
-              /*https://github.com/topojson/topojson-client/blob/master/README.md#feature*/
-              console.log(topojson.feature(jsonCounty,jsonCounty.objects.counties).features);
-       
-       
+       svg.selectAll(".county")  
+              .data(topojson.feature(jsonCounty,jsonCounty.objects.counties).features)
+              .enter()
+              .append("path")
+              .attr("id", (d)=>{return d.id;})
+              .attr("fill", "none")
+              .attr("stroke", "black")
+              .attr("d", (d)=>{return generatePolyDrawingPath(d.geometry.coordinates);});
 
+       /*https://github.com/topojson/topojson-client/blob/master/README.md#feature*/
+       console.log("debug object");
+       console.log(topojson.feature(jsonCounty,jsonCounty.objects.counties).features);
+       
        /*debug section*/
        console.log("jsonEducation");
        console.log(jsonEducation);
@@ -75,21 +83,15 @@ function main(jsonEducation, jsonCounty){
 
 };
 
-function scaleTheCoordinates(coordinateArray, scaleX, scaleY){
-       let negNumberX = true;
-       let negNumberY = true;
-       let scaledNumberX;
-       let scaledNumberY;
-       if(coordinateArray[0]<0){
-              negNumberX = false;
-       }
-       if(coordinateArray[1]<0){
-              negNumberY = false;
-       }
+function generatePolyDrawingPath(coordinateArray){
 
-       scaledNumberX = negNumberX===true?scaleX(Math.abs(coordinateArray[0]))*(-1):scaleX(coordinateArray[0]);
+       let startCoords = "M" + coordinateArray[0][0][0] + "," + coordinateArray[0][0][1] + " ";
+       let middleCoords = "";
+       let endPath = "z";
 
-       scaledNumberY = negNumberY===true?scaleY(Math.abs(coordinateArray[1]))*(-1):scaleY(coordinateArray[1]);
-
-       return [scaledNumberX, scaledNumberY];
+       /*ignore first (starting position i=0) array and last (i=[].length since end position = starting position) array*/
+       for(let i=1; i<coordinateArray[0].length; i++){
+              middleCoords = middleCoords + "L" + coordinateArray[0][i][0] + ", " + coordinateArray[0][i][1] + " ";
+       };
+       return startCoords + middleCoords + endPath;
 };
