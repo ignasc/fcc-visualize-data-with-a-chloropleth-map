@@ -2,3 +2,9 @@
 #root {
     min-width: 100vw;
 }
+
+.county {
+    fill: #cccccc;
+    stroke: black;
+    stroke-width: 0.5;
+}
