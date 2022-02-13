@@ -9,6 +9,10 @@
     stroke-width: 0.5;
 }
 
+.county:hover {
+    fill: green;
+}
+
 #title {
     font-size: 2em;
 }

@@ -42,7 +42,14 @@ function main(jsonEducation, jsonCounty){
        var topojsonObject = topojson.feature(jsonCounty,jsonCounty.objects.counties);
        const countiesDataset = topojsonObject.features;
 
+       /*Main canvas for the map*/
        const svg = d3.select("#choropleth-map");
+
+       /*Tooltips for each county*/
+       const toolTip = d3.select("body")
+              .append("div")
+              .attr("id", "tooltip")
+              .style("opacity", 0);
 
        svg.attr("width", chartWidth)
               .attr("height", chartHeight)
@@ -73,11 +80,57 @@ function main(jsonEducation, jsonCounty){
               .append("path")
               .attr("id", (d)=>{return d.id;})
               .attr("class", "county")
-              .attr("fips", (d,index)=>jsonEducation[index].fips)
+              .attr("data-fips", (d,index)=>jsonEducation[index].fips)
               .attr("state", (d,index)=>jsonEducation[index].state)
               .attr("area-name", (d,index)=>jsonEducation[index].area_name)
+              .attr("data-education", (d,index)=>jsonEducation[index].bachelorsOrHigher + "%")
               .attr("d", (d)=>{
                      return path(d);
+              })
+              .on("mouseover", (pelesEvent)=>{
+                     toolTip
+                     .transition()
+                     .duration(100)
+                     .style("opacity", 0.9);
+
+                     toolTip
+                     .html(
+                            pelesEvent.target.attributes.getNamedItem("area-name").nodeValue +
+
+                            " ,(" +
+
+                            pelesEvent.target.attributes.getNamedItem("state").nodeValue +
+
+                            ")</br>" +
+
+                            "Bachelors or Higher: " +
+
+                            pelesEvent.target.attributes.getNamedItem("data-education").nodeValue +
+
+                            "</br>" +
+
+                            "Fips: " +
+
+                            pelesEvent.target.attributes.getNamedItem("data-fips").nodeValue
+                     )
+                     .style("position", "fixed")
+                     .style("background-color", "white")
+                     .style("width", "25ch")
+                     .style("border-radius", "5px")
+                     .style("box-shadow", "0px 5px 10px rgba(44, 72, 173, 0.5)")
+                     /*tooltip positioning by getting data from mouseover event target*/
+                     .style("margin-left", pelesEvent.layerX + "px")
+                     .style("Top",  (pelesEvent.layerY-80) + "px")
+
+                     .attr("data-state", "state")
+                     .attr("data-stateShort", "short state")
+                     .attr("data-fips", "fips");
+              })
+              .on("mouseout", ()=>{
+                     toolTip
+                     .transition()
+                     .duration(100)
+                     .style("opacity", 0);
               });
 
        /*Add chart title*/
