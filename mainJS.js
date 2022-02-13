@@ -59,15 +59,34 @@ function main(jsonEducation, jsonCounty){
        */
       var path = d3.geoPath();
 
-       svg.selectAll(".county")  
+      /*Create a <g> element to store the map in it*/
+      svg.append("g")
+              .attr("id", "map-container")
+              .attr("transform","translate(0 " + 
+              padding + ")"
+              );
+
+       /*Generate US map with counties*/
+       svg.select("#map-container").selectAll(".county")  
               .data(countiesDataset)
               .enter()
               .append("path")
               .attr("id", (d)=>{return d.id;})
               .attr("class", "county")
+              .attr("fips", (d,index)=>jsonEducation[index].fips)
+              .attr("state", (d,index)=>jsonEducation[index].state)
+              .attr("area-name", (d,index)=>jsonEducation[index].area_name)
               .attr("d", (d)=>{
                      return path(d);
               });
+
+       /*Add chart title*/
+       svg.append("text")
+              .text("Title goes here")
+              .attr("x", chartWidth/2)
+              .attr("y", padding)
+              .attr("id", "title")
+              .attr("text-anchor", "middle");
 
        /*https://github.com/topojson/topojson-client/blob/master/README.md#feature*/
        console.log("debug object");
