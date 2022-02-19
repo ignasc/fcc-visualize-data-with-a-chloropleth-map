@@ -78,12 +78,16 @@ function main(jsonEducation, jsonCounty){
              };
       });
 
+      /*Round min and max to nearest decimal*/
+      degreePercentMIN = Math.round(degreePercentMIN/10)*10;
+      degreePercentMAX = Math.round(degreePercentMAX/10)*10;
+
        const colorScaleX = d3.scaleLinear()
                             .domain([degreePercentMIN, degreePercentMAX])
                             /*range values for hsl() for light blue to saturated blue*/
                             .range([80, 50]);
        const legendAxisTicks = 10;
-       const legendChartWidth = Math.round(chartWidth*0.3);
+       const legendChartWidth = chartWidth*0.3;
        const legendBarWidth = legendChartWidth/legendAxisTicks;
        const legendBarHeight = 20;
 
@@ -91,8 +95,6 @@ function main(jsonEducation, jsonCounty){
                                    .domain([degreePercentMIN, degreePercentMAX])
                                    /*legend width is 25% of chart width*/
                                    .range([0, chartWidth*0.25]);
-
-      console.log("Min value: " + degreePercentMIN + "</br>" + "Max value: " + degreePercentMAX);
 
       /*Create a <g> element to store the map in it*/
       svg.append("g")
@@ -111,7 +113,7 @@ function main(jsonEducation, jsonCounty){
               .attr("data-fips", (d,index)=>jsonEducation[index].fips)
               .attr("state", (d,index)=>jsonEducation[index].state)
               .attr("area-name", (d,index)=>jsonEducation[index].area_name)
-              .attr("data-education", (d,index)=>jsonEducation[index].bachelorsOrHigher + "%")
+              .attr("data-education", (d,index)=>jsonEducation[index].bachelorsOrHigher)
               .attr("d", (d)=>{
                      return path(d);
               })
@@ -136,7 +138,7 @@ function main(jsonEducation, jsonCounty){
 
                             "Bachelors or Higher: " +
 
-                            pelesEvent.target.attributes.getNamedItem("data-education").nodeValue +
+                            pelesEvent.target.attributes.getNamedItem("data-education").nodeValue + "%" +
 
                             "</br>" +
 
@@ -153,9 +155,10 @@ function main(jsonEducation, jsonCounty){
                      .style("margin-left", pelesEvent.layerX + "px")
                      .style("Top",  (pelesEvent.layerY-80) + "px")
 
-                     .attr("data-state", "state")
-                     .attr("data-stateShort", "short state")
-                     .attr("data-fips", "fips");
+                     .attr("data-state", pelesEvent.target.attributes.getNamedItem("area-name").nodeValue)
+                     .attr("data-stateShort", pelesEvent.target.attributes.getNamedItem("state").nodeValue)
+                     .attr("data-fips", pelesEvent.target.attributes.getNamedItem("data-fips").nodeValue)
+                     .attr("data-education", pelesEvent.target.attributes.getNamedItem("data-education").nodeValue);
               })
               .on("mouseout", ()=>{
                      toolTip
@@ -175,7 +178,7 @@ function main(jsonEducation, jsonCounty){
               .text("Percentage of adults holding Bachelor's or higher degree")
               .attr("x", chartWidth/2)
               .attr("y", padding)
-              .attr("id", "sub-title")
+              .attr("id", "description")
               .attr("text-anchor", "middle");
 
        /*Generate the legend*/
@@ -187,22 +190,19 @@ function main(jsonEducation, jsonCounty){
 
        /*Generate data array for legend bars*/
        var legendData = [degreePercentMIN];
-       var step = (degreePercentMAX-degreePercentMIN)/legendAxisTicks;
+       var step = 10;
 
-       for(let i = 0; i<legendAxisTicks-1;i++){
+       for(let i = 0; i<legendAxisTicks-3;i++){
               legendData.push(legendData[i]+step);
        };
 
        svg.append("g")
        .attr("transform","translate(" + (chartWidth*0.6) + "," + (padding*1.5) + ")")
-       .attr("id", "axis-legend")
+       .attr("id", "legend")
        .call(xAxis);
 
-       console.log(legendData);
-       console.log(step);
-
        /*Add color bars to the legend*/
-       svg.select("#axis-legend").selectAll("#legend-bars")
+       svg.select("#legend").selectAll("#legend-bars")
        .data(legendData)
        .enter()
        .append("rect")
@@ -214,17 +214,5 @@ function main(jsonEducation, jsonCounty){
        })
        .attr("x", (d)=>legendAxisScale(d))
        .attr("y",-legendBarHeight);
-
-
-       /*https://github.com/topojson/topojson-client/blob/master/README.md#feature*/
-       console.log("debug object");
-       console.log(countiesDataset);
        
-       /*debug section*/
-       
-       console.log("jsonEducation");
-       console.log(jsonEducation);
-       console.log("jsonCountry");
-       console.log(jsonCounty);
-
 };
